@@ -1,11 +1,14 @@
 var list = document.getElementById('EventList');
+var userList = document.getElementById('MyEventList');
+
 const  Constructor =(json) =>{
     return new Event(this.Id =  json.Id,
       this.Name =  json.Name,
       this.AgeFlag =  json.AgeFlag,
       this.Place =  json.Place,
       this.Time =  json.Time,
-      this.Price = json.Price);
+      this.Price = json.Price,
+      this.usersWillGo =  json.usersWillGo);
   }
 
 
@@ -38,13 +41,49 @@ var createEventHolderElement = (element) => {
         i.classList.add('fa-thumbs-o-up');
         i.onclick = (e) => {
             var currEvent =  eventsHolder.getEventById(e.target.dataset.id);
-            
-            appendUser(loggedUser, currEvent);
+            appendUser(loggedUser, currEvent);            
         } 
         li.append(i);
     }
     list.append(li); 
 }
+
+var createUserEventHolderElement = (element) => {
+    //console.log(element)
+    var li =  document.createElement('li')
+    li.classList.add('w3-white')
+    li.classList.add('w3-opacity')
+    li.classList.add('w3-hover-opacity-off')
+    li.id =  element.Id;
+    var p  = document.createElement('p')
+    var res = element.AgeFlag ? '18+' : 'All';
+    var price =  Number(element.price) > 0 ? '! ' :'$ ';
+    p.innerHTML =  price+ element.Name + ' ' + res + '<br/>' + element.Place +' '+ element.Time+ '<br/>$' + element.Price;
+    p.dataset.toggle = 'tooltip';
+    p.title =  element.Time;
+    li.append(p);
+    var i = document.createElement('i');
+    i.classList.add('fa');
+    i.dataset.Id = 'user`s'+element.Id;
+    i.classList.add('fa-times-circle');
+    i.onclick = (e) => {
+        var currEvent =  eventsHolder.getEventById(e.target.dataset.id);
+            
+        currEvent.usersWillGo.splice(loggedUser,1)
+        debugger;
+        loggedUser.balance += Number(currEvent.Price)
+        document.getElementById("userBalance").innerText  = 'Balance: $ '+ loggedUser.balance;
+        li.remove();
+        alert('You already not going to event :(') 
+    } 
+    li.append(i);
+    
+    userList.append(li); 
+}
+
+
+
+
 var validateEventFields = () => {
     var name = document.getElementById('EventName').value;
     var ageflag =  document.getElementById('EventAgeFlag').checked;
@@ -92,22 +131,39 @@ class Event {
     }
     getInformation(){
         var res = this.AgeFlag ? '18+' : 'All'
-        return  this.Name + ' ' + res + '<br/>' + this.Place+ '<br/>$' + this.Price;;
+        var price =  Number(this.price) > 0 ? '! ' :'$ ';
+
+        return price + this.Name + ' ' + res + '<br/>' + this.Place+' '+ this.Time+  '<br/>$' + this.Price;;
     }
 
 }
 var appendUser = (user, event)=>{
-    console.log(event)
-    console.log(user)
     if(event.AgeFlag == true && user.age >= 18)
     {  
         if(event.usersWillGo.includes(user) == false)
-            {  event.usersWillGo.push(user) }
+            {  
+                event.usersWillGo.push(user) 
+                if(loggedUser.balance - Number(event.Price)>= 0 )
+                {
+                    loggedUser.balance -= Number(event.Price)
+                    sessionStorage.setItem('LoggedUser',JSON.stringify(loggedUser));
+                    document.getElementById("userBalance").innerText  = 'Balance: $ '+ loggedUser.balance;
+                    localStorage.setItem('MyEvents', JSON.stringify(eventsHolder.Events))
+                    alert('You will go to the event ') 
+                    fillUserEvents().map(o=> createUserEventHolderElement(o));
+                }
+                else 
+                    alert('Not enough')
+            }
+
     }
     else{
         alert('Age isn`t compatible')
     }
+    console.log(event)
+
 }
+
 class EventsHolder{
 
     constructor(){
@@ -145,8 +201,12 @@ const sButton =  document.getElementById('SubmitButton');
 
 
 var fillEvents = () =>  { eventsHolder.Events.map( i=> createEventHolderElement(i) )};
-//eventsHolder.appendEvent(new Event( 'EventName', true,  'EventLocation' , new Date() ));
-//eventsHolder.appendEvent(new Event( 'EventName', true,  'EventLocation' , new Date() ));
+var fillUserEvents =() => { return eventsHolder.Events.filter(i=>i.usersWillGo.filter(i=>i.id=loggedUser.id));}
+
+check = () => {
+    if(loggedUser.type == 'user')
+        Array.from(document.querySelectorAll('[name=forAdmin]')).map(i=>i.style.display = 'none')
+}
 
 sButton.onclick = () => {
     var ev = validateEventFields() ; 
@@ -165,12 +225,14 @@ const userHolder =  new UserHolder();
     loggedUser = userHolder.getUser(id.id);
     eventsHolder.rebuildEventsHolder();
     document.getElementById("userFullName").innerText =  'Name: '+ loggedUser.firstName + ' ' + loggedUser.lastName;
-    document.getElementById ("userBalance").innerText  = 'Balance: $ '+ loggedUser.balance;
+    document.getElementById("userBalance").innerText  = 'Balance: $ '+ loggedUser.balance;
     document.getElementById( "userType").innerText = 'Role: ' + loggedUser.type
     document.getElementById( "userAge").innerText = 'Age: '+ loggedUser.age + ' years'
 
-})();
+    fillUserEvents().map(o=> createUserEventHolderElement(o));
+    check();
 
+})();
 
 
 

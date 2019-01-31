@@ -4,11 +4,11 @@ class User {
         this.email =  email;
         this.password =  password;
         this.type = type;
-        this.balance = 100;
-        this.firstName = "Pasha"
-        this.lastName = "Kyrnats"
+        this.balance = 1900;
+        this.firstName = "User"
+        this.lastName = "Userovich"
         this.age = age;
-        this.gender =  'male'
+        this.gender =  'unicorn'
     }
     serviceGenerateGuid()
     {

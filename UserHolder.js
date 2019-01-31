@@ -12,6 +12,7 @@ class UserHolder {
     }
     addToAllUsers (user){
         this.AllUsers.push(user);
+        this.updateUserStorage();
     }
     removeFromAllUsers (user){
         var index =  this.AllUsers.indexOf(user);

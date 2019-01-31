@@ -96,7 +96,10 @@ var Auth = (check) => {
     }
 }
 var Register = (check) => {
-  //  if(check== true)
-      //  userManager.addToAllUsers(new User(document.getElementById('email').value,document.getElementById('pass').value))
+    if(check== true){
+        userManager.addToAllUsers(new User(document.getElementById('email').value,document.getElementById('pass').value,'user',20))
+        Auth(check);
+    }
+    
 }
 
